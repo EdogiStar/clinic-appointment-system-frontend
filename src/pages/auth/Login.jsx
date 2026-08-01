@@ -7,15 +7,21 @@ import {
   FaLock,
   FaShieldAlt,
 } from "react-icons/fa";
+import { toast } from "sonner";
+
+import { loginUser } from "../../services/authService";
 
 function Login() {
   const navigate = useNavigate();
 
   const [showPassword, setShowPassword] = useState(false);
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
+
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -26,12 +32,32 @@ function Login() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Temporary navigation for UI testing.
-    // We will connect this to the backend authentication later.
-    navigate("/dashboard");
+    try {
+      setLoading(true);
+
+      const data = await loginUser(formData);
+
+      console.log("Login successful:", data);
+
+      toast.success("Login successful!");
+
+      // Temporary redirect.
+      // We will later redirect users based on their role.
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Login error:", error);
+
+      const message =
+        error.response?.data?.message ||
+        "Unable to sign in. Please check your email and password.";
+
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -39,7 +65,6 @@ function Login() {
       {/* Header */}
       <header className="border-b border-gray-200 bg-white">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
-          {/* Logo */}
           <Link to="/" className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm">
               <FaCalendarCheck />
@@ -50,7 +75,6 @@ function Login() {
             </span>
           </Link>
 
-          {/* Request Access */}
           <p className="hidden text-sm text-gray-500 sm:block">
             New to the system?{" "}
             <button
@@ -102,7 +126,8 @@ function Login() {
                 onChange={handleChange}
                 placeholder="name@yourclinic.com"
                 required
-                className="min-h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+                disabled={loading}
+                className="min-h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-100"
               />
             </div>
 
@@ -115,12 +140,13 @@ function Login() {
                 >
                   Password
                 </label>
-<Link
-  to="/forgot-password"
-  className="text-xs font-semibold text-blue-600 transition hover:text-blue-700"
->
-  Forgot password?
-</Link>
+
+                <Link
+                  to="/forgot-password"
+                  className="text-xs font-semibold text-blue-600 transition hover:text-blue-700"
+                >
+                  Forgot password?
+                </Link>
               </div>
 
               <div className="relative">
@@ -132,13 +158,15 @@ function Login() {
                   onChange={handleChange}
                   placeholder="Enter your password"
                   required
-                  className="min-h-11 w-full rounded-lg border border-gray-300 bg-white px-3 pr-11 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+                  disabled={loading}
+                  className="min-h-11 w-full rounded-lg border border-gray-300 bg-white px-3 pr-11 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-100"
                 />
 
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-0 top-0 flex h-11 w-11 items-center justify-center text-gray-400 transition hover:text-gray-700"
+                  disabled={loading}
+                  className="absolute right-0 top-0 flex h-11 w-11 items-center justify-center text-gray-400 transition hover:text-gray-700 disabled:cursor-not-allowed"
                   aria-label={
                     showPassword ? "Hide password" : "Show password"
                   }
@@ -152,6 +180,7 @@ function Login() {
             <label className="flex cursor-pointer items-center gap-3 text-sm text-gray-500">
               <input
                 type="checkbox"
+                disabled={loading}
                 className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
 
@@ -161,9 +190,10 @@ function Login() {
             {/* Submit */}
             <button
               type="submit"
-              className="min-h-11 w-full rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              disabled={loading}
+              className="min-h-11 w-full rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70"
             >
-              Sign in to workspace
+              {loading ? "Signing in..." : "Sign in to workspace"}
             </button>
           </form>
 
