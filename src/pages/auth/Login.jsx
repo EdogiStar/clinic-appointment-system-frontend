@@ -33,32 +33,40 @@ function Login() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      const data = await loginUser(formData);
+    const data = await loginUser(formData);
 
-      console.log("Login successful:", data);
+    toast.success("Welcome back! Login successful.");
 
-      toast.success("Login successful!");
+    console.log(data);
 
-      // Temporary redirect.
-      // We will later redirect users based on their role.
-      navigate("/dashboard");
-    } catch (error) {
-      console.error("Login error:", error);
+    navigate("/dashboard");
+  } catch (error) {
+    console.error(error);
 
-      const message =
-        error.response?.data?.message ||
-        "Unable to sign in. Please check your email and password.";
-
-      toast.error(message);
-    } finally {
-      setLoading(false);
+    if (!error.response) {
+      toast.error(
+        "Unable to reach the server. Please check your internet connection."
+      );
+    } else if (error.response.status === 401) {
+      toast.error("Invalid email or password.");
+    } else if (error.response.status === 403) {
+      toast.error("Your account is not authorized.");
+    } else if (error.response.status >= 500) {
+      toast.error("Server error. Please try again later.");
+    } else {
+      toast.error(
+        error.response.data?.message || "Login failed. Please try again."
+      );
     }
-  };
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
