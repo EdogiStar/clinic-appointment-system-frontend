@@ -32,41 +32,19 @@ function Login() {
     }));
   };
 
-  const handleSubmit = async (e) => {
-  e.preventDefault();
-
-  try {
-    setLoading(true);
-
-    const data = await loginUser(formData);
-
-    toast.success("Welcome back! Login successful.");
-
-    console.log(data);
-
-    navigate("/dashboard");
   } catch (error) {
-    console.error(error);
+  console.log("LOGIN ERROR:", error);
+  console.log("RESPONSE:", error.response);
+  console.log("RESPONSE DATA:", error.response?.data);
+  console.log("STATUS:", error.response?.status);
+  console.log("REQUEST:", error.request);
 
-    if (!error.response) {
-      toast.error(
-        "Unable to reach the server. Please check your internet connection."
-      );
-    } else if (error.response.status === 401) {
-      toast.error("Invalid email or password.");
-    } else if (error.response.status === 403) {
-      toast.error("Your account is not authorized.");
-    } else if (error.response.status >= 500) {
-      toast.error("Server error. Please try again later.");
-    } else {
-      toast.error(
-        error.response.data?.message || "Login failed. Please try again."
-      );
-    }
-  } finally {
-    setLoading(false);
-  }
-};
+  toast.error(
+    error.response?.data?.message ||
+      error.message ||
+      "Unable to connect to the server."
+  );
+}
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
