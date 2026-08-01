@@ -23,29 +23,35 @@ function Login() {
 
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+  const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+  try {
+    setLoading(true);
 
+    const data = await loginUser(formData);
+
+    console.log("Login successful:", data);
+
+    toast.success("Login successful!");
+
+    navigate("/dashboard");
   } catch (error) {
-  console.log("LOGIN ERROR:", error);
-  console.log("RESPONSE:", error.response);
-  console.log("RESPONSE DATA:", error.response?.data);
-  console.log("STATUS:", error.response?.status);
-  console.log("REQUEST:", error.request);
+    console.log("LOGIN ERROR:", error);
+    console.log("RESPONSE:", error.response);
+    console.log("RESPONSE DATA:", error.response?.data);
+    console.log("STATUS:", error.response?.status);
+    console.log("REQUEST:", error.request);
 
-  toast.error(
-    error.response?.data?.message ||
-      error.message ||
-      "Unable to connect to the server."
-  );
-}
-
+    toast.error(
+      error.response?.data?.message ||
+        error.message ||
+        "Unable to connect to the server."
+    );
+  } finally {
+    setLoading(false);
+  }
+};
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
       {/* Header */}
