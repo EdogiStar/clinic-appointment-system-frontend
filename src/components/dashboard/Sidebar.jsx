@@ -10,35 +10,57 @@ import {
   FaUserMd,
 } from "react-icons/fa";
 
-const menuItems = [
+const allMenuItems = [
   {
     name: "Dashboard",
     path: "/dashboard",
     icon: <FaHome />,
+    roles: ["admin", "doctor", "patient"],
   },
   {
     name: "Appointments",
     path: "/appointments",
     icon: <FaCalendarAlt />,
+    roles: ["admin", "doctor", "patient"],
   },
   {
     name: "Doctors",
     path: "/doctors",
     icon: <FaUserMd />,
+    roles: ["admin", "doctor", "patient"],
   },
   {
     name: "Patients",
     path: "/patients",
     icon: <FaUserInjured />,
+    roles: ["admin", "doctor"],
   },
   {
     name: "Settings",
     path: "/settings",
     icon: <FaCog />,
+    roles: ["admin", "doctor", "patient"],
   },
 ];
 
 function Sidebar({ mobile = false, onClose }) {
+  const user = JSON.parse(
+    localStorage.getItem("user") || "null"
+  );
+
+  const role = user?.role;
+
+  const menuItems = allMenuItems.filter((item) =>
+    item.roles.includes(role)
+  );
+
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("user");
+
+    window.location.href = "/login";
+  };
+
   return (
     <aside
       className={`flex h-screen w-64 flex-col border-r border-gray-200 bg-white ${
@@ -66,7 +88,8 @@ function Sidebar({ mobile = false, onClose }) {
         {mobile && (
           <button
             onClick={onClose}
-            className="rounded-lg p-2 hover:bg-gray-100"
+            className="rounded-lg p-2 text-gray-600 transition hover:bg-gray-100"
+            aria-label="Close sidebar"
           >
             <FaTimes />
           </button>
@@ -88,7 +111,10 @@ function Sidebar({ mobile = false, onClose }) {
               }`
             }
           >
-            <span className="text-lg">{item.icon}</span>
+            <span className="text-lg">
+              {item.icon}
+            </span>
+
             {item.name}
           </NavLink>
         ))}
@@ -96,7 +122,10 @@ function Sidebar({ mobile = false, onClose }) {
 
       {/* Logout */}
       <div className="border-t border-gray-200 p-4">
-        <button className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-red-600 transition hover:bg-red-50">
+        <button
+          onClick={handleLogout}
+          className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-red-600 transition hover:bg-red-50"
+        >
           <FaSignOutAlt />
           Logout
         </button>

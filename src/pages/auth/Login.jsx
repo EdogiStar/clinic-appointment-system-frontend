@@ -14,18 +14,23 @@ import { loginUser } from "../../services/authService";
 function Login() {
   const navigate = useNavigate();
 
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] =
+    useState(false);
 
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] =
+    useState(false);
 
-  // Handle form input changes
+
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const {
+      name,
+      value,
+    } = e.target;
 
     setFormData((prev) => ({
       ...prev,
@@ -33,45 +38,97 @@ function Login() {
     }));
   };
 
-  // Handle login
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
       setLoading(true);
 
-      const data = await loginUser(formData);
+      const response =
+        await loginUser(formData);
 
-      console.log("Login successful:", data);
+      console.log(
+        "LOGIN RESPONSE:",
+        response
+      );
 
-      toast.success("Login successful!");
+      const token =
+        response?.data?.token;
 
-      // Temporary redirect.
-      // We will later redirect users based on their role.
+      if (!token) {
+        throw new Error(
+          "Login successful, but no authentication token was received."
+        );
+      }
+
+      // Save authentication token
+      localStorage.setItem(
+        "access_token",
+        token
+      );
+
+      // Save user information
+      if (response?.data?.user) {
+        localStorage.setItem(
+          "user",
+          JSON.stringify(
+            response.data.user
+          )
+        );
+      }
+
+      toast.success(
+        "Login successful!"
+      );
+
       navigate("/dashboard");
+
     } catch (error) {
-      console.log("LOGIN ERROR:", error);
-      console.log("RESPONSE:", error.response);
-      console.log("RESPONSE DATA:", error.response?.data);
-      console.log("STATUS:", error.response?.status);
-      console.log("REQUEST:", error.request);
+      console.log(
+        "LOGIN ERROR:",
+        error
+      );
+
+      console.log(
+        "RESPONSE:",
+        error.response
+      );
+
+      console.log(
+        "RESPONSE DATA:",
+        error.response?.data
+      );
+
+      console.log(
+        "STATUS:",
+        error.response?.status
+      );
 
       toast.error(
-        error.response?.data?.message ||
+        error.response?.data?.error ||
+          error.response?.data?.message ||
           error.message ||
           "Unable to connect to the server."
       );
+
     } finally {
       setLoading(false);
     }
   };
 
+
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
+
       {/* Header */}
       <header className="border-b border-gray-200 bg-white">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
-          <Link to="/" className="flex items-center gap-3">
+
+          <Link
+            to="/"
+            className="flex items-center gap-3"
+          >
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm">
               <FaCalendarCheck />
             </div>
@@ -83,23 +140,29 @@ function Login() {
 
           <p className="hidden text-sm text-gray-500 sm:block">
             New to the system?{" "}
-            <button
-              type="button"
+
+            <Link
+              to="/register"
               className="font-semibold text-blue-600 transition hover:text-blue-700"
             >
-              Request access
-            </button>
+              Create an account
+            </Link>
           </p>
+
         </div>
       </header>
 
+
       {/* Main */}
       <main className="flex flex-1 items-center justify-center px-4 py-10 sm:px-6 sm:py-12">
+
         <section className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
+
           {/* Icon */}
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
             <FaLock size={20} />
           </div>
+
 
           {/* Heading */}
           <div className="mt-6">
@@ -113,8 +176,13 @@ function Login() {
             </p>
           </div>
 
+
           {/* Form */}
-          <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+          <form
+            onSubmit={handleSubmit}
+            className="mt-8 space-y-5"
+          >
+
             {/* Email */}
             <div>
               <label
@@ -128,7 +196,9 @@ function Login() {
                 id="email"
                 name="email"
                 type="email"
-                value={formData.email}
+                value={
+                  formData.email
+                }
                 onChange={handleChange}
                 placeholder="name@yourclinic.com"
                 required
@@ -137,9 +207,12 @@ function Login() {
               />
             </div>
 
+
             {/* Password */}
             <div>
+
               <div className="mb-2 flex items-center justify-between">
+
                 <label
                   htmlFor="password"
                   className="block text-sm font-semibold text-gray-700"
@@ -153,14 +226,23 @@ function Login() {
                 >
                   Forgot password?
                 </Link>
+
               </div>
 
+
               <div className="relative">
+
                 <input
                   id="password"
                   name="password"
-                  type={showPassword ? "text" : "password"}
-                  value={formData.password}
+                  type={
+                    showPassword
+                      ? "text"
+                      : "password"
+                  }
+                  value={
+                    formData.password
+                  }
                   onChange={handleChange}
                   placeholder="Enter your password"
                   required
@@ -170,28 +252,45 @@ function Login() {
 
                 <button
                   type="button"
-                  onClick={() => setShowPassword((prev) => !prev)}
+                  onClick={() =>
+                    setShowPassword(
+                      (prev) => !prev
+                    )
+                  }
                   disabled={loading}
                   className="absolute right-0 top-0 flex h-11 w-11 items-center justify-center text-gray-400 transition hover:text-gray-700 disabled:cursor-not-allowed"
                   aria-label={
-                    showPassword ? "Hide password" : "Show password"
+                    showPassword
+                      ? "Hide password"
+                      : "Show password"
                   }
                 >
-                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                  {showPassword ? (
+                    <FaEyeSlash />
+                  ) : (
+                    <FaEye />
+                  )}
                 </button>
+
               </div>
             </div>
 
+
             {/* Remember Me */}
             <label className="flex cursor-pointer items-center gap-3 text-sm text-gray-500">
+
               <input
                 type="checkbox"
                 disabled={loading}
                 className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
 
-              <span>Keep me signed in</span>
+              <span>
+                Keep me signed in
+              </span>
+
             </label>
+
 
             {/* Submit */}
             <button
@@ -199,12 +298,17 @@ function Login() {
               disabled={loading}
               className="min-h-11 w-full rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {loading ? "Signing in..." : "Sign in to workspace"}
+              {loading
+                ? "Signing in..."
+                : "Sign in to workspace"}
             </button>
+
           </form>
+
 
           {/* Security Divider */}
           <div className="my-7 flex items-center gap-3">
+
             <div className="h-px flex-1 bg-gray-200" />
 
             <span className="text-[10px] font-semibold tracking-wider text-gray-400">
@@ -212,26 +316,49 @@ function Login() {
             </span>
 
             <div className="h-px flex-1 bg-gray-200" />
+
           </div>
+
 
           {/* Security Message */}
           <div className="rounded-xl bg-gray-50 p-4">
+
             <div className="flex gap-3">
+
               <FaShieldAlt className="mt-0.5 shrink-0 text-lg text-emerald-500" />
 
               <p className="text-xs leading-5 text-gray-500">
                 Your account is protected with secure authentication designed
                 to keep clinic and patient information safe.
               </p>
+
             </div>
+
           </div>
+
+
+          {/* Mobile Registration Link */}
+          <p className="mt-6 text-center text-sm text-gray-500 sm:hidden">
+            New to the system?{" "}
+
+            <Link
+              to="/register"
+              className="font-semibold text-blue-600"
+            >
+              Create an account
+            </Link>
+          </p>
+
         </section>
+
       </main>
+
 
       {/* Footer */}
       <footer className="px-4 py-6 text-center text-xs text-gray-500">
         Need help? Contact your clinic workspace administrator.
       </footer>
+
     </div>
   );
 }

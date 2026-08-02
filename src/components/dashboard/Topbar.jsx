@@ -6,6 +6,17 @@ import {
 } from "react-icons/fa";
 
 function Topbar({ onMenuClick }) {
+  const user = JSON.parse(
+    localStorage.getItem("user") || "null"
+  );
+
+  const fullName = user?.full_name || "User";
+
+  const role = user?.role
+    ? user.role.charAt(0).toUpperCase() +
+      user.role.slice(1)
+    : "User";
+
   return (
     <header className="sticky top-0 z-30 border-b border-gray-200 bg-white">
       <div className="flex h-16 items-center justify-between px-4 md:px-6">
@@ -26,7 +37,7 @@ function Topbar({ onMenuClick }) {
             </h1>
 
             <p className="hidden text-sm text-gray-500 sm:block">
-              Welcome back.
+              Welcome back, {fullName}.
             </p>
           </div>
         </div>
@@ -52,11 +63,11 @@ function Topbar({ onMenuClick }) {
 
             <div className="hidden text-left md:block">
               <p className="text-sm font-semibold text-gray-900">
-                John Doe
+                {fullName}
               </p>
 
               <p className="text-xs text-gray-500">
-                Administrator
+                {role}
               </p>
             </div>
 

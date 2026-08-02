@@ -5,22 +5,39 @@ import api from "./api";
  */
 export const loginUser = async (credentials) => {
   try {
-    const response = await api.post("/auth/login", credentials);
-
-    console.log("SUCCESS:", response);
+    const response = await api.post(
+      "/auth/login",
+      credentials
+    );
 
     return response.data;
   } catch (error) {
-    console.log("ERROR OBJECT:", error);
+    console.error(
+      "Login error:",
+      error.response?.data || error.message
+    );
 
-    if (error.response) {
-      console.log("Status:", error.response.status);
-      console.log("Response:", error.response.data);
-    } else if (error.request) {
-      console.log("No response received:", error.request);
-    } else {
-      console.log("Request setup error:", error.message);
-    }
+    throw error;
+  }
+};
+
+
+/**
+ * Register a patient or doctor
+ */
+export const registerUser = async (userData) => {
+  try {
+    const response = await api.post(
+      "/auth/register",
+      userData
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Registration error:",
+      error.response?.data || error.message
+    );
 
     throw error;
   }
