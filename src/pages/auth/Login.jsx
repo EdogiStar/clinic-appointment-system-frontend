@@ -23,35 +23,49 @@ function Login() {
 
   const [loading, setLoading] = useState(false);
 
+  // Handle form input changes
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // Handle login
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  try {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const data = await loginUser(formData);
+      const data = await loginUser(formData);
 
-    console.log("Login successful:", data);
+      console.log("Login successful:", data);
 
-    toast.success("Login successful!");
+      toast.success("Login successful!");
 
-    navigate("/dashboard");
-  } catch (error) {
-    console.log("LOGIN ERROR:", error);
-    console.log("RESPONSE:", error.response);
-    console.log("RESPONSE DATA:", error.response?.data);
-    console.log("STATUS:", error.response?.status);
-    console.log("REQUEST:", error.request);
+      // Temporary redirect.
+      // We will later redirect users based on their role.
+      navigate("/dashboard");
+    } catch (error) {
+      console.log("LOGIN ERROR:", error);
+      console.log("RESPONSE:", error.response);
+      console.log("RESPONSE DATA:", error.response?.data);
+      console.log("STATUS:", error.response?.status);
+      console.log("REQUEST:", error.request);
 
-    toast.error(
-      error.response?.data?.message ||
-        error.message ||
-        "Unable to connect to the server."
-    );
-  } finally {
-    setLoading(false);
-  }
-};
+      toast.error(
+        error.response?.data?.message ||
+          error.message ||
+          "Unable to connect to the server."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
       {/* Header */}
