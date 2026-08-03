@@ -42,3 +42,12 @@ export const registerUser = async (userData) => {
     throw error;
   }
 };
+
+
+/**
+ * Sign out the current user
+ */
+export const logoutUser = () => {
+  localStorage.removeItem("access_token");
+  localStorage.removeItem("user");
+};

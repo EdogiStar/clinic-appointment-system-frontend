@@ -4,35 +4,44 @@ import api from "./api";
  * Get appointments for the logged-in patient
  */
 export const getAppointments = async () => {
-  const response = await api.get("/appointments/patient");
-
-  return response.data;
-};
-
-/**
- * Get appointments for a specific doctor
- */
-export const getDoctorAppointments = async (doctorId) => {
   const response = await api.get(
-    `/appointments/doctor/${doctorId}`
+    "/appointments/patient"
   );
 
-  return response.data;
+  return response.data?.data || [];
 };
 
 /**
- * Get a single appointment
+ * Get appointments for the logged-in doctor
+ *
+ * The backend identifies the doctor
+ * from the authenticated user's account.
  */
-export const getAppointmentById = async (id) => {
+export const getDoctorAppointments = async () => {
+  const response = await api.get(
+    "/appointments/doctor"
+  );
+
+  return response.data?.data || [];
+};
+
+/**
+ * Get a single appointment by ID
+ */
+export const getAppointmentById = async (
+  id
+) => {
   const response = await api.get(
     `/appointments/${id}`
   );
 
-  return response.data;
+  return response.data?.data || null;
 };
 
 /**
  * Create a new appointment
+ *
+ * Patient only
  */
 export const createAppointment = async (
   appointmentData
@@ -42,11 +51,21 @@ export const createAppointment = async (
     appointmentData
   );
 
-  return response.data;
+  return response.data?.data || null;
 };
 
 /**
  * Update appointment status
+ *
+ * Patient:
+ * - Can cancel their own appointment
+ *
+ * Doctor:
+ * - Can confirm, complete, or cancel
+ *   their assigned appointments
+ *
+ * Admin:
+ * - Can manage all appointments
  */
 export const updateAppointmentStatus = async (
   id,
@@ -59,13 +78,15 @@ export const updateAppointmentStatus = async (
     }
   );
 
-  return response.data;
+  return response.data?.data || null;
 };
 
 /**
- * Cancel appointment
+ * Cancel an appointment
  */
-export const cancelAppointment = async (id) => {
+export const cancelAppointment = async (
+  id
+) => {
   return updateAppointmentStatus(
     id,
     "cancelled"
@@ -73,12 +94,14 @@ export const cancelAppointment = async (id) => {
 };
 
 /**
- * Get all appointments for admin
+ * Get all appointments
+ *
+ * Admin only
  */
 export const getAllAppointments = async () => {
   const response = await api.get(
     "/appointments/admin"
   );
 
-  return response.data;
+  return response.data?.data || [];
 };

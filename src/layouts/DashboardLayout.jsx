@@ -17,26 +17,34 @@ function DashboardLayout({ children }) {
       {/* Mobile Sidebar */}
       {sidebarOpen && (
         <>
+          {/* Overlay */}
           <div
             className="fixed inset-0 z-40 bg-black/40 md:hidden"
             onClick={() => setSidebarOpen(false)}
           />
 
-          <div className="fixed left-0 top-0 z-50 md:hidden">
-            <Sidebar onClose={() => setSidebarOpen(false)} mobile />
-          </div>
+          {/* Mobile Sidebar */}
+          <Sidebar
+            mobile
+            onClose={() => setSidebarOpen(false)}
+          />
         </>
       )}
 
-      {/* Main */}
+      {/* Main Content */}
       <div className="md:ml-64">
-        <Topbar onMenuClick={() => setSidebarOpen(true)} />
+        <Topbar
+          onMenuClick={() =>
+            setSidebarOpen(true)
+          }
+        />
 
         <main className="p-4 pb-24 md:p-6">
           {children}
         </main>
       </div>
 
+      {/* Mobile Bottom Navigation */}
       <div className="md:hidden">
         <MobileBottomNav />
       </div>

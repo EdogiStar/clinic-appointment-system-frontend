@@ -25,7 +25,6 @@ function Login() {
   const [loading, setLoading] =
     useState(false);
 
-
   const handleChange = (e) => {
     const {
       name,
@@ -37,7 +36,6 @@ function Login() {
       [name]: value,
     }));
   };
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -117,7 +115,6 @@ function Login() {
     }
   };
 
-
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
 
@@ -152,7 +149,6 @@ function Login() {
         </div>
       </header>
 
-
       {/* Main */}
       <main className="flex flex-1 items-center justify-center px-4 py-10 sm:px-6 sm:py-12">
 
@@ -162,7 +158,6 @@ function Login() {
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
             <FaLock size={20} />
           </div>
-
 
           {/* Heading */}
           <div className="mt-6">
@@ -175,7 +170,6 @@ function Login() {
               patient care.
             </p>
           </div>
-
 
           {/* Form */}
           <form
@@ -207,7 +201,6 @@ function Login() {
               />
             </div>
 
-
             {/* Password */}
             <div>
 
@@ -228,7 +221,6 @@ function Login() {
                 </Link>
 
               </div>
-
 
               <div className="relative">
 
@@ -275,7 +267,6 @@ function Login() {
               </div>
             </div>
 
-
             {/* Remember Me */}
             <label className="flex cursor-pointer items-center gap-3 text-sm text-gray-500">
 
@@ -291,7 +282,6 @@ function Login() {
 
             </label>
 
-
             {/* Submit */}
             <button
               type="submit"
@@ -305,7 +295,6 @@ function Login() {
 
           </form>
 
-
           {/* Security Divider */}
           <div className="my-7 flex items-center gap-3">
 
@@ -318,7 +307,6 @@ function Login() {
             <div className="h-px flex-1 bg-gray-200" />
 
           </div>
-
 
           {/* Security Message */}
           <div className="rounded-xl bg-gray-50 p-4">
@@ -336,7 +324,6 @@ function Login() {
 
           </div>
 
-
           {/* Mobile Registration Link */}
           <p className="mt-6 text-center text-sm text-gray-500 sm:hidden">
             New to the system?{" "}
@@ -352,7 +339,6 @@ function Login() {
         </section>
 
       </main>
-
 
       {/* Footer */}
       <footer className="px-4 py-6 text-center text-xs text-gray-500">

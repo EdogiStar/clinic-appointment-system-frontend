@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import {
   FaUserCircle,
   FaUserMd,
@@ -9,9 +10,15 @@ import {
   FaStethoscope,
   FaEdit,
   FaLock,
+  FaSignOutAlt,
 } from "react-icons/fa";
+import { toast } from "sonner";
+
+import { logoutUser } from "../../services/authService";
 
 function Settings() {
+  const navigate = useNavigate();
+
   const user = JSON.parse(
     localStorage.getItem("user") || "null"
   );
@@ -32,6 +39,18 @@ function Settings() {
     }
 
     return <FaUser />;
+  };
+
+  const handleLogout = () => {
+    logoutUser();
+
+    toast.success(
+      "You have been signed out successfully."
+    );
+
+    navigate("/login", {
+      replace: true,
+    });
   };
 
   return (
@@ -181,6 +200,30 @@ function Settings() {
               Change Password
             </button>
           </div>
+        </div>
+      </section>
+
+      {/* Sign Out */}
+      <section className="rounded-xl border border-red-200 bg-white p-6 shadow-sm sm:p-8">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="font-bold text-gray-900">
+              Sign Out
+            </h3>
+
+            <p className="mt-1 text-sm leading-6 text-gray-500">
+              Sign out of your clinic account on this device.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-red-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 sm:w-auto"
+          >
+            <FaSignOutAlt />
+            Sign Out
+          </button>
         </div>
       </section>
     </div>

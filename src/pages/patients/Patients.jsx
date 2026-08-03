@@ -9,26 +9,92 @@ import {
 } from "react-icons/fa";
 import { toast } from "sonner";
 
-import { getPatients } from "../../services/patientService";
+import {
+  getPatients,
+  getDoctorPatients,
+} from "../../services/patientService";
 
 function Patients() {
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [user, setUser] = useState(null);
 
+  /*
+   * Get logged-in user
+   */
   useEffect(() => {
-    fetchPatients();
+    const storedUser =
+      localStorage.getItem("user");
+
+    if (!storedUser) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const parsedUser =
+        JSON.parse(storedUser);
+
+      setUser(parsedUser);
+    } catch (error) {
+      console.error(
+        "Failed to parse stored user:",
+        error
+      );
+
+      toast.error(
+        "Unable to load user information."
+      );
+
+      setLoading(false);
+    }
   }, []);
 
+  /*
+   * Fetch patients after user is loaded
+   */
+  useEffect(() => {
+    if (user) {
+      fetchPatients();
+    }
+  }, [user]);
+
+  /*
+   * Fetch patients based on role
+   *
+   * Admin:
+   * GET /patients
+   *
+   * Doctor:
+   * GET /patients/doctor
+   */
   const fetchPatients = async () => {
     try {
       setLoading(true);
 
-      const response = await getPatients();
+      const role =
+        user?.role?.toLowerCase();
 
-      const patientList = Array.isArray(response)
+      let response;
+
+      if (role === "admin") {
+        response = await getPatients();
+      } else if (role === "doctor") {
+        response =
+          await getDoctorPatients();
+      } else {
+        setPatients([]);
+        return;
+      }
+
+      const patientList = Array.isArray(
+        response
+      )
         ? response
-        : response?.data || response?.patients || [];
+        : response?.data ||
+          response?.patients ||
+          [];
 
       setPatients(patientList);
     } catch (error) {
@@ -41,52 +107,75 @@ function Patients() {
         error.response?.data?.message ||
           "Unable to load patients."
       );
+
+      setPatients([]);
     } finally {
       setLoading(false);
     }
   };
 
+  /*
+   * Filter patients
+   */
   const filteredPatients = useMemo(() => {
-    const searchTerm = search
-      .toLowerCase()
-      .trim();
+    const searchTerm =
+      search.toLowerCase().trim();
 
     if (!searchTerm) {
       return patients;
     }
 
-    return patients.filter((patient) => {
-      const name =
-        patient.full_name?.toLowerCase() || "";
+    return patients.filter(
+      (patient) => {
+        const name =
+          patient.full_name?.toLowerCase() ||
+          "";
 
-      const email =
-        patient.email?.toLowerCase() || "";
+        const email =
+          patient.email?.toLowerCase() ||
+          "";
 
-      const phone =
-        patient.phone?.toLowerCase() || "";
+        const phone =
+          patient.phone?.toLowerCase() ||
+          "";
 
-      return (
-        name.includes(searchTerm) ||
-        email.includes(searchTerm) ||
-        phone.includes(searchTerm)
-      );
-    });
+        return (
+          name.includes(searchTerm) ||
+          email.includes(searchTerm) ||
+          phone.includes(searchTerm)
+        );
+      }
+    );
   }, [patients, search]);
+
+  const role =
+    user?.role?.toLowerCase();
+
+  const pageDescription =
+    role === "admin"
+      ? "Manage and monitor registered clinic patients."
+      : "View patients who have appointments with you.";
 
   return (
     <div className="space-y-6">
+      {/* ================================== */}
       {/* Header */}
+      {/* ================================== */}
+
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
           Patients
         </h1>
 
         <p className="mt-1 text-sm text-gray-500 sm:text-base">
-          Manage and monitor registered clinic patients.
+          {pageDescription}
         </p>
       </div>
 
+      {/* ================================== */}
       {/* Search */}
+      {/* ================================== */}
+
       <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
         <div className="relative max-w-2xl">
           <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400" />
@@ -103,9 +192,13 @@ function Patients() {
         </div>
       </div>
 
+      {/* ================================== */}
       {/* Patient List */}
+      {/* ================================== */}
+
       <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
         {/* Desktop Table */}
+
         <div className="hidden overflow-x-auto md:block">
           <table className="w-full min-w-[800px]">
             <thead className="border-b border-gray-200 bg-gray-50">
@@ -139,24 +232,31 @@ function Patients() {
         </div>
 
         {/* Mobile Cards */}
+
         <div className="divide-y divide-gray-100 md:hidden">
           {loading ? (
             <LoadingState />
-          ) : filteredPatients.length === 0 ? (
+          ) : filteredPatients.length ===
+            0 ? (
             <EmptyState search={search} />
           ) : (
-            filteredPatients.map((patient) => (
-              <PatientCard
-                key={patient.id}
-                patient={patient}
-              />
-            ))
+            filteredPatients.map(
+              (patient) => (
+                <PatientCard
+                  key={patient.id}
+                  patient={patient}
+                />
+              )
+            )
           )}
         </div>
       </div>
     </div>
   );
 
+  /*
+   * Desktop table content
+   */
   function renderTableContent() {
     if (loading) {
       return (
@@ -168,22 +268,28 @@ function Patients() {
       );
     }
 
-    if (filteredPatients.length === 0) {
+    if (
+      filteredPatients.length === 0
+    ) {
       return (
         <tr>
           <td colSpan="5">
-            <EmptyState search={search} />
+            <EmptyState
+              search={search}
+            />
           </td>
         </tr>
       );
     }
 
-    return filteredPatients.map((patient) => (
-      <PatientTableRow
-        key={patient.id}
-        patient={patient}
-      />
-    ));
+    return filteredPatients.map(
+      (patient) => (
+        <PatientTableRow
+          key={patient.id}
+          patient={patient}
+        />
+      )
+    );
   }
 }
 
@@ -191,14 +297,19 @@ function Patients() {
 /* Desktop Patient Row */
 /* ---------------------------------- */
 
-function PatientTableRow({ patient }) {
+function PatientTableRow({
+  patient,
+}) {
   return (
     <tr className="transition hover:bg-gray-50">
       {/* Patient */}
+
       <td className="px-6 py-4">
         <div className="flex items-center gap-3">
           <PatientAvatar
-            name={patient.full_name}
+            name={
+              patient.full_name
+            }
           />
 
           <div className="min-w-0">
@@ -215,6 +326,7 @@ function PatientTableRow({ patient }) {
       </td>
 
       {/* Email */}
+
       <td className="px-6 py-4">
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <FaEnvelope className="text-xs text-gray-400" />
@@ -226,6 +338,7 @@ function PatientTableRow({ patient }) {
       </td>
 
       {/* Phone */}
+
       <td className="px-6 py-4">
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <FaPhone className="text-xs text-gray-400" />
@@ -237,13 +350,20 @@ function PatientTableRow({ patient }) {
       </td>
 
       {/* Registered */}
+
       <td className="px-6 py-4 text-sm text-gray-600">
-        {formatDate(patient.created_at)}
+        {formatDate(
+          patient.created_at
+        )}
       </td>
 
       {/* Action */}
+
       <td className="px-6 py-4 text-right">
-        <button className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 transition hover:text-blue-700">
+        <button
+          type="button"
+          className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 transition hover:text-blue-700"
+        >
           <FaEye className="text-xs" />
           View
         </button>
@@ -256,13 +376,17 @@ function PatientTableRow({ patient }) {
 /* Mobile Patient Card */
 /* ---------------------------------- */
 
-function PatientCard({ patient }) {
+function PatientCard({
+  patient,
+}) {
   return (
     <div className="p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 gap-3">
           <PatientAvatar
-            name={patient.full_name}
+            name={
+              patient.full_name
+            }
           />
 
           <div className="min-w-0">
@@ -283,33 +407,46 @@ function PatientCard({ patient }) {
       </div>
 
       <div className="mt-4 space-y-3">
+        {/* Email */}
+
         <div className="flex items-center gap-3 text-sm text-gray-500">
           <FaEnvelope className="shrink-0 text-gray-400" />
 
           <span className="truncate">
-            {patient.email || "No email"}
+            {patient.email ||
+              "No email"}
           </span>
         </div>
+
+        {/* Phone */}
 
         <div className="flex items-center gap-3 text-sm text-gray-500">
           <FaPhone className="shrink-0 text-gray-400" />
 
           <span>
-            {patient.phone || "No phone number"}
+            {patient.phone ||
+              "No phone number"}
           </span>
         </div>
+
+        {/* Registered */}
 
         <div className="flex items-center gap-3 text-sm text-gray-500">
           <FaCalendarAlt className="shrink-0 text-gray-400" />
 
           <span>
             Registered{" "}
-            {formatDate(patient.created_at)}
+            {formatDate(
+              patient.created_at
+            )}
           </span>
         </div>
       </div>
 
-      <button className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 py-2.5 text-sm font-semibold text-gray-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600">
+      <button
+        type="button"
+        className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 py-2.5 text-sm font-semibold text-gray-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600"
+      >
         <FaEye />
         View Patient
       </button>
@@ -321,9 +458,14 @@ function PatientCard({ patient }) {
 /* Patient Avatar */
 /* ---------------------------------- */
 
-function PatientAvatar({ name }) {
+function PatientAvatar({
+  name,
+}) {
   const initial =
-    name?.trim()?.charAt(0)?.toUpperCase() ||
+    name
+      ?.trim()
+      ?.charAt(0)
+      ?.toUpperCase() ||
     "P";
 
   return (
@@ -349,7 +491,9 @@ function LoadingState() {
 /* Empty */
 /* ---------------------------------- */
 
-function EmptyState({ search }) {
+function EmptyState({
+  search,
+}) {
   return (
     <div className="flex min-h-40 flex-col items-center justify-center p-6 text-center">
       <FaUserInjured className="text-3xl text-gray-300" />
@@ -361,7 +505,7 @@ function EmptyState({ search }) {
       <p className="mt-1 text-sm text-gray-500">
         {search
           ? "Try adjusting your search."
-          : "There are no registered patients yet."}
+          : "There are no patients to display yet."}
       </p>
     </div>
   );
@@ -372,9 +516,22 @@ function EmptyState({ search }) {
 /* ---------------------------------- */
 
 function formatDate(date) {
-  if (!date) return "—";
+  if (!date) {
+    return "—";
+  }
 
-  return new Date(date).toLocaleDateString(
+  const parsedDate =
+    new Date(date);
+
+  if (
+    Number.isNaN(
+      parsedDate.getTime()
+    )
+  ) {
+    return "—";
+  }
+
+  return parsedDate.toLocaleDateString(
     "en-US",
     {
       month: "short",

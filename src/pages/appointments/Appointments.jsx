@@ -14,67 +14,124 @@ import { toast } from "sonner";
 
 import {
   getAppointments,
+  getDoctorAppointments,
   getAllAppointments,
   updateAppointmentStatus,
 } from "../../services/appointmentService";
 
 function Appointments() {
-  const [appointments, setAppointments] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [appointments, setAppointments] =
+    useState([]);
 
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("all");
+  const [loading, setLoading] =
+    useState(true);
 
-  const [selectedAppointment, setSelectedAppointment] =
+  const [search, setSearch] =
+    useState("");
+
+  const [status, setStatus] =
+    useState("all");
+
+  const [
+    selectedAppointment,
+    setSelectedAppointment,
+  ] = useState(null);
+
+  const [
+    updatingStatus,
+    setUpdatingStatus,
+  ] = useState(false);
+
+  const [user, setUser] =
     useState(null);
 
-  const [updatingStatus, setUpdatingStatus] =
-    useState(false);
-
-  const [user, setUser] = useState(null);
-
+  /*
+   * Load authenticated user
+   */
   useEffect(() => {
     const storedUser =
       localStorage.getItem("user");
 
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error(
-          "Failed to parse stored user:",
-          error
-        );
-      }
+    if (!storedUser) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const parsedUser =
+        JSON.parse(storedUser);
+
+      setUser(parsedUser);
+    } catch (error) {
+      console.error(
+        "Failed to parse stored user:",
+        error
+      );
+
+      toast.error(
+        "Unable to load user information."
+      );
+
+      setLoading(false);
     }
   }, []);
 
+  /*
+   * Fetch appointments when
+   * authenticated user is available
+   */
   useEffect(() => {
     if (user) {
       fetchAppointments();
     }
   }, [user]);
 
+  /*
+   * Fetch appointments based
+   * on the user's role
+   *
+   * Admin:
+   * GET /appointments/admin
+   *
+   * Doctor:
+   * GET /appointments/doctor
+   *
+   * Patient:
+   * GET /appointments/patient
+   */
   const fetchAppointments = async () => {
     try {
       setLoading(true);
 
-      const isAdmin =
-        user?.role === "admin";
+      const role =
+        user?.role?.toLowerCase();
 
-      const response = isAdmin
-        ? await getAllAppointments()
-        : await getAppointments();
+      let response;
 
-      const appointmentList = Array.isArray(
-        response
-      )
-        ? response
-        : response?.data ||
-          response?.appointments ||
-          [];
+      if (role === "admin") {
+        response =
+          await getAllAppointments();
+      } else if (role === "doctor") {
+        response =
+          await getDoctorAppointments();
+      } else if (role === "patient") {
+        response =
+          await getAppointments();
+      } else {
+        setAppointments([]);
+        return;
+      }
 
-      setAppointments(appointmentList);
+      const appointmentList =
+        Array.isArray(response)
+          ? response
+          : response?.data ||
+            response?.appointments ||
+            [];
+
+      setAppointments(
+        appointmentList
+      );
     } catch (error) {
       console.error(
         "Failed to fetch appointments:",
@@ -85,97 +142,118 @@ function Appointments() {
         error.response?.data?.message ||
           "Unable to load appointments."
       );
+
+      setAppointments([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const filteredAppointments = useMemo(() => {
-    return appointments.filter(
-      (appointment) => {
-        const searchTerm =
-          search.toLowerCase().trim();
+  /*
+   * Filter appointments
+   */
+  const filteredAppointments =
+    useMemo(() => {
+      return appointments.filter(
+        (appointment) => {
+          const searchTerm =
+            search
+              .toLowerCase()
+              .trim();
 
-        const patientName =
-          appointment.patient
-            ?.full_name ||
-          appointment.patient
-            ?.name ||
-          appointment.patient_name ||
-          "";
+          const patientName =
+            getPatientName(
+              appointment
+            );
 
-        const doctorName =
-          getDoctorName(appointment);
+          const doctorName =
+            getDoctorName(
+              appointment
+            );
 
-        const matchesSearch =
-          patientName
-            .toLowerCase()
-            .includes(searchTerm) ||
-          doctorName
-            .toLowerCase()
-            .includes(searchTerm);
+          const matchesSearch =
+            patientName
+              .toLowerCase()
+              .includes(
+                searchTerm
+              ) ||
+            doctorName
+              .toLowerCase()
+              .includes(
+                searchTerm
+              );
 
-        const appointmentStatus =
-          appointment.status?.toLowerCase() ||
-          "";
+          const appointmentStatus =
+            appointment.status?.toLowerCase() ||
+            "";
 
-        const matchesStatus =
-          status === "all" ||
-          appointmentStatus ===
-            status.toLowerCase();
+          const matchesStatus =
+            status === "all" ||
+            appointmentStatus ===
+              status.toLowerCase();
 
-        return (
-          matchesSearch &&
-          matchesStatus
-        );
-      }
-    );
-  }, [
-    appointments,
-    search,
-    status,
-  ]);
-
-  const handleStatusUpdate = async (
-    appointmentId,
-    newStatus
-  ) => {
-    try {
-      setUpdatingStatus(true);
-
-      await updateAppointmentStatus(
-        appointmentId,
-        newStatus
+          return (
+            matchesSearch &&
+            matchesStatus
+          );
+        }
       );
+    }, [
+      appointments,
+      search,
+      status,
+    ]);
 
-      toast.success(
-        `Appointment ${formatStatus(
+  /*
+   * Update appointment status
+   */
+  const handleStatusUpdate =
+    async (
+      appointmentId,
+      newStatus
+    ) => {
+      try {
+        setUpdatingStatus(true);
+
+        await updateAppointmentStatus(
+          appointmentId,
           newStatus
-        )} successfully.`
-      );
+        );
 
-      setSelectedAppointment(null);
+        toast.success(
+          `Appointment ${formatStatus(
+            newStatus
+          ).toLowerCase()} successfully.`
+        );
 
-      await fetchAppointments();
-    } catch (error) {
-      console.error(
-        "Failed to update appointment:",
-        error
-      );
+        setSelectedAppointment(
+          null
+        );
 
-      toast.error(
-        error.response?.data?.error ||
-          error.response?.data?.message ||
-          "Unable to update appointment status."
-      );
-    } finally {
-      setUpdatingStatus(false);
-    }
-  };
+        await fetchAppointments();
+      } catch (error) {
+        console.error(
+          "Failed to update appointment:",
+          error
+        );
+
+        toast.error(
+          error.response?.data
+            ?.error ||
+            error.response?.data
+              ?.message ||
+            "Unable to update appointment status."
+        );
+      } finally {
+        setUpdatingStatus(false);
+      }
+    };
 
   return (
     <div className="space-y-6">
+      {/* ================================== */}
       {/* Header */}
+      {/* ================================== */}
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -184,21 +262,33 @@ function Appointments() {
           </h1>
 
           <p className="mt-1 text-sm text-gray-500 sm:text-base">
-            {user?.role === "admin"
+            {user?.role ===
+            "admin"
               ? "Manage and monitor all clinic appointments."
+              : user?.role ===
+                "doctor"
+              ? "View and manage appointments assigned to you."
               : "View and manage your appointments."}
           </p>
         </div>
 
-        {user?.role === "patient" && (
-          <button className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 sm:w-auto">
+        {/* New Appointment */}
+
+        {user?.role ===
+          "patient" && (
+          <button
+            type="button"
+            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 sm:w-auto"
+          >
             <FaPlus />
             New Appointment
           </button>
         )}
       </div>
 
+      {/* ================================== */}
       {/* Filters */}
+      {/* ================================== */}
 
       <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
         <div className="flex flex-col gap-3 lg:flex-row">
@@ -212,13 +302,15 @@ function Appointments() {
               placeholder="Search by patient or doctor..."
               value={search}
               onChange={(e) =>
-                setSearch(e.target.value)
+                setSearch(
+                  e.target.value
+                )
               }
               className="min-h-11 w-full rounded-lg border border-gray-300 bg-white pl-10 pr-4 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             />
           </div>
 
-          {/* Status */}
+          {/* Status Filter */}
 
           <div className="relative lg:w-52">
             <FaFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400" />
@@ -226,7 +318,9 @@ function Appointments() {
             <select
               value={status}
               onChange={(e) =>
-                setStatus(e.target.value)
+                setStatus(
+                  e.target.value
+                )
               }
               className="min-h-11 w-full appearance-none rounded-lg border border-gray-300 bg-white px-10 text-sm text-gray-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
@@ -254,7 +348,9 @@ function Appointments() {
         </div>
       </div>
 
+      {/* ================================== */}
       {/* Appointment List */}
+      {/* ================================== */}
 
       <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
         {/* Desktop Table */}
@@ -307,7 +403,9 @@ function Appointments() {
             filteredAppointments.map(
               (appointment) => (
                 <AppointmentCard
-                  key={appointment.id}
+                  key={
+                    appointment.id
+                  }
                   appointment={
                     appointment
                   }
@@ -323,7 +421,9 @@ function Appointments() {
         </div>
       </div>
 
+      {/* ================================== */}
       {/* Appointment Details Modal */}
+      {/* ================================== */}
 
       {selectedAppointment && (
         <AppointmentDetailsModal
@@ -335,7 +435,9 @@ function Appointments() {
             updatingStatus
           }
           onClose={() =>
-            setSelectedAppointment(null)
+            setSelectedAppointment(
+              null
+            )
           }
           onStatusUpdate={
             handleStatusUpdate
@@ -345,6 +447,9 @@ function Appointments() {
     </div>
   );
 
+  /*
+   * Desktop table content
+   */
   function renderTableContent() {
     if (loading) {
       return (
@@ -357,7 +462,8 @@ function Appointments() {
     }
 
     if (
-      filteredAppointments.length === 0
+      filteredAppointments.length ===
+      0
     ) {
       return (
         <tr>
@@ -372,7 +478,9 @@ function Appointments() {
       (appointment) => (
         <AppointmentTableRow
           key={appointment.id}
-          appointment={appointment}
+          appointment={
+            appointment
+          }
           onView={() =>
             setSelectedAppointment(
               appointment
@@ -388,22 +496,28 @@ function Appointments() {
 /* Helpers */
 /* ---------------------------------- */
 
-function getDoctorName(appointment) {
+function getDoctorName(
+  appointment
+) {
   return (
-    appointment.doctor?.users
+    appointment.doctor
+      ?.users?.full_name ||
+    appointment.doctor
+      ?.user?.full_name ||
+    appointment.doctor
       ?.full_name ||
-    appointment.doctor?.user
-      ?.full_name ||
-    appointment.doctor?.full_name ||
     appointment.doctor?.name ||
     appointment.doctor_name ||
     "Unknown Doctor"
   );
 }
 
-function getPatientName(appointment) {
+function getPatientName(
+  appointment
+) {
   return (
-    appointment.patient?.full_name ||
+    appointment.patient
+      ?.full_name ||
     appointment.patient?.name ||
     appointment.patient_name ||
     "Unknown Patient"
@@ -411,22 +525,42 @@ function getPatientName(appointment) {
 }
 
 function formatDate(date) {
-  if (!date) return "—";
+  if (!date) {
+    return "—";
+  }
 
-  return new Date(
-    `${date}T00:00:00`
-  ).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  const parsedDate =
+    new Date(
+      `${date}T00:00:00`
+    );
+
+  if (
+    Number.isNaN(
+      parsedDate.getTime()
+    )
+  ) {
+    return "—";
+  }
+
+  return parsedDate.toLocaleDateString(
+    "en-US",
+    {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }
+  );
 }
 
 function formatTime(time) {
-  if (!time) return "—";
+  if (!time) {
+    return "—";
+  }
 
-  const [hours, minutes] =
-    time.split(":");
+  const [
+    hours,
+    minutes,
+  ] = time.split(":");
 
   const date = new Date();
 
@@ -445,7 +579,9 @@ function formatTime(time) {
 }
 
 function formatStatus(status) {
-  if (!status) return "";
+  if (!status) {
+    return "";
+  }
 
   return (
     status.charAt(0).toUpperCase() +
@@ -462,10 +598,14 @@ function AppointmentTableRow({
   onView,
 }) {
   const patientName =
-    getPatientName(appointment);
+    getPatientName(
+      appointment
+    );
 
   const doctorName =
-    getDoctorName(appointment);
+    getDoctorName(
+      appointment
+    );
 
   return (
     <tr className="transition hover:bg-gray-50">
@@ -506,6 +646,7 @@ function AppointmentTableRow({
 
       <td className="px-6 py-4 text-right">
         <button
+          type="button"
           onClick={onView}
           className="text-sm font-semibold text-blue-600 hover:text-blue-700"
         >
@@ -525,10 +666,14 @@ function AppointmentCard({
   onView,
 }) {
   const patientName =
-    getPatientName(appointment);
+    getPatientName(
+      appointment
+    );
 
   const doctorName =
-    getDoctorName(appointment);
+    getDoctorName(
+      appointment
+    );
 
   return (
     <div className="p-4">
@@ -579,6 +724,7 @@ function AppointmentCard({
       </div>
 
       <button
+        type="button"
         onClick={onView}
         className="mt-4 w-full rounded-lg border border-gray-200 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50"
       >
@@ -600,24 +746,46 @@ function AppointmentDetailsModal({
   onStatusUpdate,
 }) {
   const patientName =
-    getPatientName(appointment);
+    getPatientName(
+      appointment
+    );
 
   const doctorName =
-    getDoctorName(appointment);
+    getDoctorName(
+      appointment
+    );
+
+  const role =
+    user?.role?.toLowerCase();
 
   const isAdmin =
-    user?.role === "admin";
+    role === "admin";
+
+  const isDoctor =
+    role === "doctor";
 
   const isPatient =
-    user?.role === "patient";
+    role === "patient";
 
   const status =
     appointment.status?.toLowerCase();
 
+  /*
+   * Admin can manage everything.
+   *
+   * Doctor can manage their own
+   * assigned appointments.
+   *
+   * Patient can only cancel
+   * their own appointment.
+   */
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white shadow-xl">
+        {/* ================================== */}
         {/* Modal Header */}
+        {/* ================================== */}
 
         <div className="flex items-center justify-between border-b border-gray-200 p-5">
           <div>
@@ -632,6 +800,7 @@ function AppointmentDetailsModal({
           </div>
 
           <button
+            type="button"
             onClick={onClose}
             className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-700"
           >
@@ -639,7 +808,9 @@ function AppointmentDetailsModal({
           </button>
         </div>
 
+        {/* ================================== */}
         {/* Details */}
+        {/* ================================== */}
 
         <div className="space-y-5 p-5">
           {/* Status */}
@@ -772,7 +943,9 @@ function AppointmentDetailsModal({
             </div>
           )}
 
+          {/* ================================== */}
           {/* Admin Actions */}
+          {/* ================================== */}
 
           {isAdmin && (
             <div>
@@ -781,9 +954,12 @@ function AppointmentDetailsModal({
               </h3>
 
               <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                {/* Confirm */}
+
                 {status ===
                   "pending" && (
                   <button
+                    type="button"
                     disabled={
                       updatingStatus
                     }
@@ -801,9 +977,12 @@ function AppointmentDetailsModal({
                   </button>
                 )}
 
+                {/* Complete */}
+
                 {status ===
                   "confirmed" && (
                   <button
+                    type="button"
                     disabled={
                       updatingStatus
                     }
@@ -821,11 +1000,14 @@ function AppointmentDetailsModal({
                   </button>
                 )}
 
+                {/* Cancel */}
+
                 {status !==
                   "cancelled" &&
                   status !==
                     "completed" && (
                     <button
+                      type="button"
                       disabled={
                         updatingStatus
                       }
@@ -846,7 +1028,94 @@ function AppointmentDetailsModal({
             </div>
           )}
 
+          {/* ================================== */}
+          {/* Doctor Actions */}
+          {/* ================================== */}
+
+          {isDoctor && (
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900">
+                Appointment Actions
+              </h3>
+
+              <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                {/* Confirm */}
+
+                {status ===
+                  "pending" && (
+                  <button
+                    type="button"
+                    disabled={
+                      updatingStatus
+                    }
+                    onClick={() =>
+                      onStatusUpdate(
+                        appointment.id,
+                        "confirmed"
+                      )
+                    }
+                    className="min-h-10 flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {updatingStatus
+                      ? "Updating..."
+                      : "Confirm"}
+                  </button>
+                )}
+
+                {/* Complete */}
+
+                {status ===
+                  "confirmed" && (
+                  <button
+                    type="button"
+                    disabled={
+                      updatingStatus
+                    }
+                    onClick={() =>
+                      onStatusUpdate(
+                        appointment.id,
+                        "completed"
+                      )
+                    }
+                    className="min-h-10 flex-1 rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {updatingStatus
+                      ? "Updating..."
+                      : "Mark Completed"}
+                  </button>
+                )}
+
+                {/* Cancel */}
+
+                {status !==
+                  "cancelled" &&
+                  status !==
+                    "completed" && (
+                    <button
+                      type="button"
+                      disabled={
+                        updatingStatus
+                      }
+                      onClick={() =>
+                        onStatusUpdate(
+                          appointment.id,
+                          "cancelled"
+                        )
+                      }
+                      className="min-h-10 flex-1 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {updatingStatus
+                        ? "Updating..."
+                        : "Cancel"}
+                    </button>
+                  )}
+              </div>
+            </div>
+          )}
+
+          {/* ================================== */}
           {/* Patient Cancel Action */}
+          {/* ================================== */}
 
           {isPatient &&
             status !==
@@ -855,6 +1124,7 @@ function AppointmentDetailsModal({
               "completed" && (
               <div>
                 <button
+                  type="button"
                   disabled={
                     updatingStatus
                   }
@@ -874,10 +1144,13 @@ function AppointmentDetailsModal({
             )}
         </div>
 
+        {/* ================================== */}
         {/* Footer */}
+        {/* ================================== */}
 
         <div className="border-t border-gray-200 bg-gray-50 p-4">
           <button
+            type="button"
             onClick={onClose}
             className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-100"
           >
@@ -914,17 +1187,22 @@ function InfoItem({
 /* Status Badge */
 /* ---------------------------------- */
 
-function StatusBadge({ status }) {
+function StatusBadge({
+  status,
+}) {
   const normalizedStatus =
     status?.toLowerCase();
 
   const styles = {
     confirmed:
       "bg-blue-100 text-blue-700",
+
     pending:
       "bg-yellow-100 text-yellow-700",
+
     completed:
       "bg-green-100 text-green-700",
+
     cancelled:
       "bg-red-100 text-red-700",
   };
