@@ -10,6 +10,7 @@ import DashboardLayout from "../layouts/DashboardLayout";
 
 import Dashboard from "../pages/dashboard/Dashboard";
 import Appointments from "../pages/appointments/Appointments";
+import BookAppointment from "../pages/appointments/BookAppointment";
 import Doctors from "../pages/doctors/Doctors";
 import Patients from "../pages/patients/Patients";
 import Settings from "../pages/settings/Settings";
@@ -58,14 +59,6 @@ function ProtectedRoute({ children }) {
 
 /**
  * Protect routes based on user role
- *
- * Example:
- *
- * <RoleProtectedRoute
- *   allowedRoles={["admin"]}
- * >
- *   <Patients />
- * </RoleProtectedRoute>
  */
 function RoleProtectedRoute({
   children,
@@ -155,7 +148,6 @@ function AppRoutes() {
         Patient:
         - View their own appointments
         - Cancel their own appointments
-        - Create new appointments
       */}
 
       <Route
@@ -171,6 +163,36 @@ function AppRoutes() {
             >
               <DashboardLayout>
                 <Appointments />
+              </DashboardLayout>
+            </RoleProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* ================================== */}
+      {/* Book Appointment */}
+      {/* ================================== */}
+
+      {/*
+        Patient only:
+        - Select doctor
+        - Select appointment date
+        - Select available time slot
+        - Enter reason for visit
+        - Create appointment
+      */}
+
+      <Route
+        path="/appointments/book"
+        element={
+          <ProtectedRoute>
+            <RoleProtectedRoute
+              allowedRoles={[
+                "patient",
+              ]}
+            >
+              <DashboardLayout>
+                <BookAppointment />
               </DashboardLayout>
             </RoleProtectedRoute>
           </ProtectedRoute>

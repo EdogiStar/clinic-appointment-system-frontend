@@ -1,4 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
+import { 
+    Link
+ } from "react-router-dom";
 import {
   FaCalendarAlt,
   FaPlus,
@@ -20,6 +23,7 @@ import {
 } from "../../services/appointmentService";
 
 function Appointments() {
+
   const [appointments, setAppointments] =
     useState([]);
 
@@ -46,8 +50,11 @@ function Appointments() {
     useState(null);
 
   /*
+   * ==========================================
    * Load authenticated user
+   * ==========================================
    */
+
   useEffect(() => {
     const storedUser =
       localStorage.getItem("user");
@@ -77,9 +84,11 @@ function Appointments() {
   }, []);
 
   /*
-   * Fetch appointments when
-   * authenticated user is available
+   * ==========================================
+   * Fetch appointments when user is available
+   * ==========================================
    */
+
   useEffect(() => {
     if (user) {
       fetchAppointments();
@@ -87,8 +96,8 @@ function Appointments() {
   }, [user]);
 
   /*
-   * Fetch appointments based
-   * on the user's role
+   * ==========================================
+   * Fetch appointments based on user role
    *
    * Admin:
    * GET /appointments/admin
@@ -98,7 +107,9 @@ function Appointments() {
    *
    * Patient:
    * GET /appointments/patient
+   * ==========================================
    */
+
   const fetchAppointments = async () => {
     try {
       setLoading(true);
@@ -140,6 +151,7 @@ function Appointments() {
 
       toast.error(
         error.response?.data?.message ||
+          error.response?.data?.error ||
           "Unable to load appointments."
       );
 
@@ -150,8 +162,11 @@ function Appointments() {
   };
 
   /*
+   * ==========================================
    * Filter appointments
+   * ==========================================
    */
+
   const filteredAppointments =
     useMemo(() => {
       return appointments.filter(
@@ -205,8 +220,11 @@ function Appointments() {
     ]);
 
   /*
+   * ==========================================
    * Update appointment status
+   * ==========================================
    */
+
   const handleStatusUpdate =
     async (
       appointmentId,
@@ -249,6 +267,12 @@ function Appointments() {
       }
     };
 
+  /*
+   * ==========================================
+   * Render
+   * ==========================================
+   */
+
   return (
     <div className="space-y-6">
       {/* ================================== */}
@@ -262,28 +286,28 @@ function Appointments() {
           </h1>
 
           <p className="mt-1 text-sm text-gray-500 sm:text-base">
-            {user?.role ===
+            {user?.role?.toLowerCase() ===
             "admin"
               ? "Manage and monitor all clinic appointments."
-              : user?.role ===
+              : user?.role?.toLowerCase() ===
                 "doctor"
               ? "View and manage appointments assigned to you."
               : "View and manage your appointments."}
           </p>
         </div>
 
-        {/* New Appointment */}
 
-        {user?.role ===
-          "patient" && (
-          <button
-            type="button"
-            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 sm:w-auto"
-          >
-            <FaPlus />
-            New Appointment
-          </button>
-        )}
+        {user?.role?.toLowerCase() ===
+  "patient" && (
+  <Link
+    to="/appointments/book"
+    className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 sm:w-auto"
+  >
+    <FaPlus />
+    Book Appointment
+  </Link>
+)}
+
       </div>
 
       {/* ================================== */}
@@ -448,8 +472,11 @@ function Appointments() {
   );
 
   /*
-   * Desktop table content
+   * ==========================================
+   * Desktop Table Content
+   * ==========================================
    */
+
   function renderTableContent() {
     if (loading) {
       return (
@@ -492,9 +519,9 @@ function Appointments() {
   }
 }
 
-/* ---------------------------------- */
+/* ================================== */
 /* Helpers */
-/* ---------------------------------- */
+/* ================================== */
 
 function getDoctorName(
   appointment
@@ -589,9 +616,9 @@ function formatStatus(status) {
   );
 }
 
-/* ---------------------------------- */
-/* Desktop Row */
-/* ---------------------------------- */
+/* ================================== */
+/* Desktop Appointment Row */
+/* ================================== */
 
 function AppointmentTableRow({
   appointment,
@@ -657,9 +684,9 @@ function AppointmentTableRow({
   );
 }
 
-/* ---------------------------------- */
-/* Mobile Card */
-/* ---------------------------------- */
+/* ================================== */
+/* Mobile Appointment Card */
+/* ================================== */
 
 function AppointmentCard({
   appointment,
@@ -733,10 +760,9 @@ function AppointmentCard({
     </div>
   );
 }
-
-/* ---------------------------------- */
+/* ================================== */
 /* Appointment Details Modal */
-/* ---------------------------------- */
+/* ================================== */
 
 function AppointmentDetailsModal({
   appointment,
@@ -770,16 +796,6 @@ function AppointmentDetailsModal({
   const status =
     appointment.status?.toLowerCase();
 
-  /*
-   * Admin can manage everything.
-   *
-   * Doctor can manage their own
-   * assigned appointments.
-   *
-   * Patient can only cancel
-   * their own appointment.
-   */
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white shadow-xl">
@@ -809,7 +825,7 @@ function AppointmentDetailsModal({
         </div>
 
         {/* ================================== */}
-        {/* Details */}
+        {/* Appointment Details */}
         {/* ================================== */}
 
         <div className="space-y-5 p-5">
@@ -853,7 +869,7 @@ function AppointmentDetailsModal({
             </div>
           </div>
 
-          {/* Patient */}
+          {/* Patient Information */}
 
           <div>
             <h3 className="text-sm font-semibold text-gray-900">
@@ -891,7 +907,7 @@ function AppointmentDetailsModal({
             </div>
           </div>
 
-          {/* Doctor */}
+          {/* Doctor Information */}
 
           <div>
             <h3 className="text-sm font-semibold text-gray-900">
@@ -929,7 +945,7 @@ function AppointmentDetailsModal({
             </div>
           </div>
 
-          {/* Reason */}
+          {/* Reason for Visit */}
 
           {appointment.reason && (
             <div>
@@ -1006,24 +1022,24 @@ function AppointmentDetailsModal({
                   "cancelled" &&
                   status !==
                     "completed" && (
-                    <button
-                      type="button"
-                      disabled={
-                        updatingStatus
-                      }
-                      onClick={() =>
-                        onStatusUpdate(
-                          appointment.id,
-                          "cancelled"
-                        )
-                      }
-                      className="min-h-10 flex-1 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      {updatingStatus
-                        ? "Updating..."
-                        : "Cancel"}
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    disabled={
+                      updatingStatus
+                    }
+                    onClick={() =>
+                      onStatusUpdate(
+                        appointment.id,
+                        "cancelled"
+                      )
+                    }
+                    className="min-h-10 flex-1 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {updatingStatus
+                      ? "Updating..."
+                      : "Cancel"}
+                  </button>
+                )}
               </div>
             </div>
           )}
@@ -1091,24 +1107,24 @@ function AppointmentDetailsModal({
                   "cancelled" &&
                   status !==
                     "completed" && (
-                    <button
-                      type="button"
-                      disabled={
-                        updatingStatus
-                      }
-                      onClick={() =>
-                        onStatusUpdate(
-                          appointment.id,
-                          "cancelled"
-                        )
-                      }
-                      className="min-h-10 flex-1 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      {updatingStatus
-                        ? "Updating..."
-                        : "Cancel"}
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    disabled={
+                      updatingStatus
+                    }
+                    onClick={() =>
+                      onStatusUpdate(
+                        appointment.id,
+                        "cancelled"
+                      )
+                    }
+                    className="min-h-10 flex-1 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {updatingStatus
+                      ? "Updating..."
+                      : "Cancel"}
+                  </button>
+                )}
               </div>
             </div>
           )}
@@ -1122,30 +1138,30 @@ function AppointmentDetailsModal({
               "cancelled" &&
             status !==
               "completed" && (
-              <div>
-                <button
-                  type="button"
-                  disabled={
-                    updatingStatus
-                  }
-                  onClick={() =>
-                    onStatusUpdate(
-                      appointment.id,
-                      "cancelled"
-                    )
-                  }
-                  className="min-h-10 w-full rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {updatingStatus
-                    ? "Cancelling..."
-                    : "Cancel Appointment"}
-                </button>
-              </div>
-            )}
+            <div>
+              <button
+                type="button"
+                disabled={
+                  updatingStatus
+                }
+                onClick={() =>
+                  onStatusUpdate(
+                    appointment.id,
+                    "cancelled"
+                  )
+                }
+                className="min-h-10 w-full rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {updatingStatus
+                  ? "Cancelling..."
+                  : "Cancel Appointment"}
+              </button>
+            </div>
+          )}
         </div>
 
         {/* ================================== */}
-        {/* Footer */}
+        {/* Modal Footer */}
         {/* ================================== */}
 
         <div className="border-t border-gray-200 bg-gray-50 p-4">
@@ -1162,9 +1178,9 @@ function AppointmentDetailsModal({
   );
 }
 
-/* ---------------------------------- */
+/* ================================== */
 /* Info Item */
-/* ---------------------------------- */
+/* ================================== */
 
 function InfoItem({
   label,
@@ -1183,9 +1199,9 @@ function InfoItem({
   );
 }
 
-/* ---------------------------------- */
+/* ================================== */
 /* Status Badge */
-/* ---------------------------------- */
+/* ================================== */
 
 function StatusBadge({
   status,
@@ -1221,9 +1237,9 @@ function StatusBadge({
   );
 }
 
-/* ---------------------------------- */
-/* Loading */
-/* ---------------------------------- */
+/* ================================== */
+/* Loading State */
+/* ================================== */
 
 function LoadingState() {
   return (
@@ -1233,9 +1249,9 @@ function LoadingState() {
   );
 }
 
-/* ---------------------------------- */
-/* Empty */
-/* ---------------------------------- */
+/* ================================== */
+/* Empty State */
+/* ================================== */
 
 function EmptyState() {
   return (
