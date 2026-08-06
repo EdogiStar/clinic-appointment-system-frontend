@@ -14,6 +14,7 @@ import BookAppointment from "../pages/appointments/BookAppointment";
 import Doctors from "../pages/doctors/Doctors";
 import Patients from "../pages/patients/Patients";
 import Settings from "../pages/settings/Settings";
+import Availability from "../pages/availability/Availability";
 
 /**
  * Get the currently logged-in user
@@ -193,6 +194,34 @@ function AppRoutes() {
             >
               <DashboardLayout>
                 <BookAppointment />
+              </DashboardLayout>
+            </RoleProtectedRoute>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* ================================== */}
+      {/* Availability */}
+      {/* ================================== */}
+
+      {/*
+        Doctor only:
+        - View availability slots
+        - Add availability
+        - Delete availability
+      */}
+
+      <Route
+        path="/availability"
+        element={
+          <ProtectedRoute>
+            <RoleProtectedRoute
+              allowedRoles={[
+                "doctor",
+              ]}
+            >
+              <DashboardLayout>
+                <Availability />
               </DashboardLayout>
             </RoleProtectedRoute>
           </ProtectedRoute>

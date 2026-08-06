@@ -2,6 +2,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import {
   FaCalendarAlt,
   FaCalendarCheck,
+  FaClock,
   FaCog,
   FaHome,
   FaSignOutAlt,
@@ -25,6 +26,12 @@ const allMenuItems = [
     path: "/appointments",
     icon: <FaCalendarAlt />,
     roles: ["admin", "doctor", "patient"],
+  },
+  {
+    name: "Availability",
+    path: "/availability",
+    icon: <FaClock />,
+    roles: ["doctor"],
   },
   {
     name: "Doctors",
