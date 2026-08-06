@@ -4,14 +4,12 @@ import LandingFooter from "../../components/landing/LandingFooter";
 
 function Landing() {
   return (
-    <div className="min-h-screen overflow-x-hidden bg-white">
+    <div className="min-h-screen bg-white text-gray-900">
       <LandingHeader />
 
-      
+      <main>
         <HeroSection />
-
-        {/* More landing sections will be added here */}
-      
+      </main>
 
       <LandingFooter />
     </div>

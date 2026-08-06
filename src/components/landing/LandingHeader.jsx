@@ -6,111 +6,117 @@ import {
   FaTimes,
 } from "react-icons/fa";
 
+const navLinks = [
+  { label: "Features", href: "#features" },
+  { label: "How It Works", href: "#how-it-works" },
+  { label: "FAQ", href: "#faq" },
+];
+
 function LandingHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const closeMenu = () => {
-    setIsMenuOpen(false);
-  };
+  const closeMenu = () => setIsMenuOpen(false);
 
   return (
-    <header className="relative border-b bg-white">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 md:px-6">
-        {/* Left */}
-        <div className="flex items-center gap-3">
-          {/* Mobile Menu Button */}
-          <button
-            type="button"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="rounded-lg p-2 text-gray-700 transition hover:bg-gray-100 md:hidden"
-            aria-label={isMenuOpen ? "Close menu" : "Open menu"}
-            aria-expanded={isMenuOpen}
-          >
-            {isMenuOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
-          </button>
+    <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/90 backdrop-blur">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+        {/* Logo */}
+        <Link
+          to="/"
+          className="flex items-center gap-3"
+          onClick={closeMenu}
+        >
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm">
+            <FaCalendarCheck size={18} />
+          </div>
 
-          {/* Logo */}
-          <Link
-            to="/"
-            onClick={closeMenu}
-            className="flex items-center gap-3"
-          >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white">
-              <FaCalendarCheck />
-            </div>
-
-            {/* Desktop / Tablet Logo */}
-            <span className="hidden text-lg font-bold text-gray-900 sm:block">
-              Clinic Appointment System
-            </span>
-
-            {/* Small Mobile Logo */}
-            <span className="text-lg font-bold text-gray-900 sm:hidden">
-              Clinic
-            </span>
-          </Link>
-        </div>
+          <div>
+            <h1 className="text-lg font-bold text-gray-900">
+              Clinic Appointment
+            </h1>
+            <p className="hidden text-xs text-gray-500 sm:block">
+              Smart Healthcare Scheduling
+            </p>
+          </div>
+        </Link>
 
         {/* Desktop Navigation */}
         <nav className="hidden items-center gap-8 md:flex">
-          <a
-            href="#features"
-            className="text-gray-600 transition hover:text-blue-600"
-          >
-            Features
-          </a>
-
-          <a
-            href="#about"
-            className="text-gray-600 transition hover:text-blue-600"
-          >
-            About
-          </a>
-
-          <a
-            href="#contact"
-            className="text-gray-600 transition hover:text-blue-600"
-          >
-            Contact
-          </a>
+          {navLinks.map((link) => (
+            <a
+              key={link.label}
+              href={link.href}
+              className="text-sm font-medium text-gray-600 transition hover:text-blue-600"
+            >
+              {link.label}
+            </a>
+          ))}
         </nav>
 
-        {/* Right */}
-        <Link
-          to="/login"
-          className="rounded-lg bg-blue-600 px-4 py-2 font-medium text-white transition hover:bg-blue-700"
+        {/* Desktop Buttons */}
+        <div className="hidden items-center gap-3 md:flex">
+          <Link
+            to="/login"
+            className="rounded-lg px-4 py-2 font-medium text-gray-700 transition hover:bg-gray-100"
+          >
+            Sign In
+          </Link>
+
+          <Link
+            to="/login"
+            className="rounded-lg bg-blue-600 px-5 py-2 font-medium text-white transition hover:bg-blue-700"
+          >
+            Get Started
+          </Link>
+        </div>
+
+        {/* Mobile Menu Button */}
+        <button
+          type="button"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          className="rounded-lg p-2 text-gray-700 transition hover:bg-gray-100 md:hidden"
+          aria-label={isMenuOpen ? "Close menu" : "Open menu"}
         >
-          Sign In
-        </Link>
+          {isMenuOpen ? (
+            <FaTimes size={20} />
+          ) : (
+            <FaBars size={20} />
+          )}
+        </button>
       </div>
 
-      {/* Mobile Navigation Menu */}
+      {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="border-t bg-white shadow-md md:hidden">
-          <nav className="mx-auto flex max-w-7xl flex-col px-4 py-3">
-            <a
-              href="#features"
-              onClick={closeMenu}
-              className="rounded-lg px-3 py-3 text-gray-700 transition hover:bg-gray-50 hover:text-blue-600"
-            >
-              Features
-            </a>
+        <div className="border-t border-gray-200 bg-white md:hidden">
+          <nav className="mx-auto max-w-7xl space-y-1 px-4 py-4">
+            {navLinks.map((link) => (
+              <a
+                key={link.label}
+                href={link.href}
+                onClick={closeMenu}
+                className="block rounded-lg px-3 py-3 text-gray-700 transition hover:bg-blue-50 hover:text-blue-600"
+              >
+                {link.label}
+              </a>
+            ))}
 
-            <a
-              href="#about"
-              onClick={closeMenu}
-              className="rounded-lg px-3 py-3 text-gray-700 transition hover:bg-gray-50 hover:text-blue-600"
-            >
-              About
-            </a>
+            <div className="mt-4 space-y-3 border-t border-gray-100 pt-4">
+              <Link
+                to="/login"
+                onClick={closeMenu}
+                className="block rounded-lg border border-gray-300 px-4 py-3 text-center font-medium text-gray-700 transition hover:bg-gray-50"
+              >
+                Sign In
+              </Link>
 
-            <a
-              href="#contact"
-              onClick={closeMenu}
-              className="rounded-lg px-3 py-3 text-gray-700 transition hover:bg-gray-50 hover:text-blue-600"
-            >
-              Contact
-            </a>
+              <Link
+                to="/login"
+                onClick={closeMenu}
+                className="block rounded-lg bg-blue-600 px-4 py-3 text-center font-medium text-white transition hover:bg-blue-700"
+              >
+                Get Started
+              </Link>
+            </div>
           </nav>
         </div>
       )}
