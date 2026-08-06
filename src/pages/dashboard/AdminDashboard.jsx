@@ -125,10 +125,6 @@ function AdminDashboard({ user }) {
           </p>
         </div>
 
-        <button className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 sm:w-auto">
-          <FaPlus />
-          New Appointment
-        </button>
       </div>
 
       {/* ---------------------------------- */}
@@ -258,10 +254,7 @@ function AdminDashboard({ user }) {
           </p>
 
           <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-1">
-            <QuickButton text="New Appointment" />
-
-            <QuickButton text="Register Patient" />
-
+            
             <QuickButton text="View Doctors" />
 
             <QuickButton text="Appointment History" />
