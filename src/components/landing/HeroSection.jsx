@@ -120,7 +120,7 @@ function HeroSection() {
           {/* Right Image */}
           <div className="relative">
             <img
-              src="https://unsplash.com/photos/a-man-and-a-woman-talking-ThpS0DVkPBs"
+              src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=900&q=80"
               alt="Doctor checking a patient's blood pressure"
               className="h-[500px] w-full rounded-3xl object-cover shadow-2xl"
             />
