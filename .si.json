@@ -21,6 +21,14 @@
     ".md": {
       "enabled": true,
       "run": "marksman server"
+    },
+    ".html": {
+      "enabled": true,
+      "run": "vscode-html-language-server --stdio"
+    },
+    ".svg": {
+      "enabled": true,
+      "run": "lemminx"
     }
   }
 }
