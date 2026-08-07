@@ -809,10 +809,7 @@ function AppointmentDetailsModal({
               Appointment Details
             </h2>
 
-            <p className="mt-1 text-xs text-gray-500">
-              Appointment ID:{" "}
-              {appointment.id}
-            </p>
+
           </div>
 
           <button

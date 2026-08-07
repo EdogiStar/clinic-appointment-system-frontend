@@ -3,17 +3,61 @@ import {
   FaCalendarAlt,
   FaClock,
   FaCheckCircle,
-  FaPlus,
   FaArrowRight,
 } from "react-icons/fa";
 import { toast } from "sonner";
 
 import { getAppointments } from "../../services/appointmentService";
 
+/* ---------------------------------- */
+/* Helpers */
+/* ---------------------------------- */
+
+function getDoctorName(appointment) {
+  return (
+    appointment.doctor?.users?.full_name ||
+    appointment.doctor?.user?.full_name ||
+    appointment.doctor?.full_name ||
+    appointment.doctor?.name ||
+    appointment.doctor_name ||
+    "Unknown Doctor"
+  );
+}
+
+function formatDate(date) {
+  if (!date) return "—";
+
+  const parsedDate = new Date(`${date}T00:00:00`);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return "—";
+  }
+
+  return parsedDate.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function formatTime(time) {
+  if (!time) return "—";
+
+  const [hours, minutes] = time.split(":");
+
+  const date = new Date();
+
+  date.setHours(Number(hours), Number(minutes));
+
+  return date.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 function PatientDashboard({ user }) {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
-
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -102,21 +146,17 @@ function PatientDashboard({ user }) {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
             My Dashboard
           </h1>
 
           <p className="mt-1 text-sm text-gray-500 sm:text-base">
-            Welcome back, {user?.full_name || "Patient"}.
+            Welcome back,{" "}
+            {user?.full_name || "Patient"}.
           </p>
         </div>
-
-        <button className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 sm:w-auto">
-          <FaPlus />
-          Book Appointment
-        </button>
       </div>
 
       {/* Loading */}
@@ -199,7 +239,7 @@ function PatientDashboard({ user }) {
         </section>
       )}
 
-      {/* Appointment History */}
+      {/* Recent Appointments */}
       {!loading && !error && (
         <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
           <div className="flex items-center justify-between">
@@ -239,27 +279,9 @@ function PatientDashboard({ user }) {
           </div>
         </section>
       )}
-
-      {/* Quick Actions */}
-      <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
-        <h2 className="text-lg font-semibold text-gray-900">
-          Quick Actions
-        </h2>
-
-        <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <button className="rounded-lg border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-700 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700">
-            Book an Appointment
-          </button>
-
-          <button className="rounded-lg border border-gray-200 px-4 py-3 text-left text-sm font-medium text-gray-700 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700">
-            View Appointment History
-          </button>
-        </div>
-      </section>
     </div>
   );
 }
-
 /* ---------------------------------- */
 /* Stat Card */
 /* ---------------------------------- */
@@ -294,27 +316,32 @@ function AppointmentCard({ appointment }) {
   const status =
     appointment.status?.toLowerCase() || "pending";
 
+  const doctorName = getDoctorName(appointment);
+
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-gray-200 p-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-3 rounded-lg border border-gray-200 p-4 transition hover:border-blue-200 hover:bg-gray-50 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0">
-        <h3 className="font-semibold text-gray-900">
-          {appointment.doctor?.full_name ||
-            appointment.doctor_name ||
-            "Doctor"}
+        <h3 className="truncate font-semibold text-gray-900">
+          {doctorName}
         </h3>
 
         <p className="mt-1 text-sm text-gray-500">
-          {appointment.appointment_date} ·{" "}
-          {appointment.start_time}
+          {formatDate(
+            appointment.appointment_date
+          )}{" "}
+          &middot;{" "}
+          {formatTime(
+            appointment.start_time
+          )}
         </p>
       </div>
 
       <span
-        className={`w-fit rounded-full px-3 py-1 text-xs font-semibold capitalize ${
+        className={`inline-flex w-fit rounded-full px-3 py-1 text-xs font-semibold capitalize ${
           status === "confirmed"
-            ? "bg-green-100 text-green-700"
-            : status === "completed"
             ? "bg-blue-100 text-blue-700"
+            : status === "completed"
+            ? "bg-green-100 text-green-700"
             : status === "cancelled"
             ? "bg-red-100 text-red-700"
             : "bg-yellow-100 text-yellow-700"
